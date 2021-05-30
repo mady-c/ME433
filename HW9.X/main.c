@@ -141,10 +141,10 @@ void clearProgress(unsigned short x, unsigned short y, unsigned short color, uns
 
 //dispTime prints the time in nanoseconds between letters- next to progress bar
 void dispTime(unsigned short x, unsigned short y){
-    int outms = (int) _CP0_GET_COUNT()/(24000000/1000000);
+    int outns = (int) _CP0_GET_COUNT()/(24000000/1000000); 
     int i=0;
     unsigned char m[10];
-    sprintf(m, "%d", outms); //prints the number to a string
+    sprintf(m, "%d", outns); //prints the number to a string
     while(m[i] != 0){ //goes thru same process as drawString, but gets called within drawString and I didn't want to deal with recursion
         drawChar(x,y,WHITE,m[i]);
         x+=6;
