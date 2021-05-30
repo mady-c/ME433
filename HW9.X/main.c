@@ -38,7 +38,7 @@
 #pragma config FPLLIDIV = DIV_2 // divide input clock to be in range 4-5MHz
 #pragma config FPLLMUL = MUL_24 // multiply clock after FPLLIDIV
 #pragma config FPLLODIV = DIV_2 // divide clock after FPLLMUL to get 48MHz USE NORMALLY
-//#pragma config FPLLODIV = DIV_4
+
 
 // DEVCFG3
 #pragma config USERID = 0 // some 16bit userid, doesn't matter what
@@ -63,48 +63,50 @@ int main(){
     
      LCD_clearScreen(MAGENTA);
      char msg[100];
-     sprintf(msg, "Hello World!!!");
+     sprintf(msg, "Hello World!!!"); //thing to be shown later
      
-     while(1){
-//         drawChar(28, 32, WHITE, "H");
-         drawString(28,32, WHITE, msg);
-         delay(8000000);
-         LCD_clearScreen(MAGENTA);
-         delay(20000);
+     while(1){ //infinite loop
+//         drawChar(28, 32, WHITE, "H"); //writes just an H
+         drawString(28,32, WHITE, msg);  //writes "hello world" at x = 28, y=32
+         delay(8000000); //delay to show msg 
+         LCD_clearScreen(MAGENTA); //clear screen 
+         delay(20000); //wait a little bit before starting over
      }
     
 }
 
+//drawChar goes pixed by pixel to draw a letter
 void drawChar(unsigned short x, unsigned short y, unsigned short color, unsigned char letter){
     int i = 0, j = 0; //i = col, j = row
 //    const unsigned char* lettarray = ASCII[letter-32];
     for(i=0; i<=4; i++){
         for(j=0; j<=7; j++){
-            if((((ASCII[letter-32][i])>>j) & 1) == 1){
-//                LCD_clearScreen(BLUE);
-                LCD_drawPixel(x+i,y+j, color);
-            }           
+            if((((ASCII[letter-32][i])>>j) & 1) == 1){ //gives value of jth bit of ith column for the letter's corresponding row in the matrix
+                LCD_drawPixel(x+i,y+j, color); //updates the pixel to the new color
+            }           //if  !=1, do nothing (leave pixel as it was)
         }
     }
 }
 
+//drawString goes letter by letter to draw a string
 void drawString(unsigned short x, unsigned short y, unsigned short color, unsigned char *msg){
     int i = 0;
-    unsigned short xinit=x; 
-    progressInit(x, y+15, 2*strlen(msg));
-    while(msg[i] != 0){
-        _CP0_SET_COUNT(0);
-        drawChar(x,y,color, msg[i]);
-        x+=6;
-        delay(10000);
-//        dispTime(xinit+2*strlen(msg)+5, y+15);
-        dispFPS(xinit+6*strlen(msg)+3, y);
-        drawProgress(xinit, y+15, i);
+    unsigned short xinit=x; //for progress bar and FPS use
+    progressInit(x, y+15, 2*strlen(msg)); //initializes progress bar to be 2x the length of the string
+    while(msg[i] != 0){ //0 = the exit character for a string
+        _CP0_SET_COUNT(0); //for timing purposes
+        drawChar(x,y,color, msg[i]); //current letter
+        x+=6; //since each letter is 5 pixels wide
+        delay(100); //so FPS can keep up
+//        dispTime(xinit+2*strlen(msg)+5, y+15); //initially I had the time between letters displayed next to progress bar
+        dispFPS(xinit+6*strlen(msg)+3, y); //displays current fps in ns
+        drawProgress(xinit, y+15, i); //updates progress bar
         
         i+=1;
     }
 }
 
+//progressInit draws a rectangle with sides x = len+2, y = 5
 void progressInit(unsigned short x, unsigned short y, unsigned short len){
     int i = 0, j = 0;
     for(i =0; i<(len+2); i++){
@@ -117,6 +119,7 @@ void progressInit(unsigned short x, unsigned short y, unsigned short len){
     }
 }
 
+//drawProgress updates the progress bar with 2 hashes for each letter 
 void drawProgress(unsigned short x, unsigned short y, unsigned char place){
     int j = 0;
     while(j<5){
@@ -126,6 +129,7 @@ void drawProgress(unsigned short x, unsigned short y, unsigned char place){
     }
 }
 
+//clearProgress clears the green from the progress bar. Not actually used in this code.
 void clearProgress(unsigned short x, unsigned short y, unsigned short color, unsigned short len){
     int i=0, j=0;
     for(i=0;i<len; i++){
@@ -135,12 +139,13 @@ void clearProgress(unsigned short x, unsigned short y, unsigned short color, uns
     }
 }
 
+//dispTime prints the time in nanoseconds between letters- next to progress bar
 void dispTime(unsigned short x, unsigned short y){
     int outms = (int) _CP0_GET_COUNT()/(24000000/1000000);
     int i=0;
     unsigned char m[10];
-    sprintf(m, "%d", outms);
-    while(m[i] != 0){
+    sprintf(m, "%d", outms); //prints the number to a string
+    while(m[i] != 0){ //goes thru same process as drawString, but gets called within drawString and I didn't want to deal with recursion
         drawChar(x,y,WHITE,m[i]);
         x+=6;
         i+=1;
@@ -150,11 +155,13 @@ void dispTime(unsigned short x, unsigned short y){
     drawChar(x+13,y,WHITE,'s');
     
     //crashes PIC
-//    for(i=0; i<(floor(log10(abs(outms))) + 1); i++){
-//        sprintf(*m, "%d", (short int)(outms/pow(10, i))%10);
+//    for(i=0; i<(floor(log10(abs(outms))) + 1); i++){ //number of digits in the number
+//        sprintf(*m, "%d", (short int)(outms/pow(10, i))%10); //i-th digit of the number
 //        drawChar(x+i,y,WHITE, &m);
 //    }
 }
+
+//dispFPS displays frequency of letter writes - next to string
 void dispFPS(unsigned short x, unsigned short y){
     int outHz = (int) 24000000/_CP0_GET_COUNT();
     int i=0;
@@ -172,7 +179,7 @@ void dispFPS(unsigned short x, unsigned short y){
 }
 
 
-void delay(int counts){
+void delay(int counts){ //so PIC can catch up with itself and so things are visible
     _CP0_SET_COUNT(0);
     while(_CP0_GET_COUNT()<counts){;}
 }
