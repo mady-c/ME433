@@ -49,7 +49,7 @@ void drawChar(unsigned short x, unsigned short y, unsigned short color, unsigned
 void drawString(unsigned short x, unsigned short y, unsigned short color, unsigned char *msg);
 void progressInit(unsigned short x, unsigned short y, unsigned short len); //draws a rectangle
 void drawProgress(unsigned short x, unsigned short y, unsigned char place); //updates rectangle
-void clearProgress(unsigned short x, unsigned short y, unsigned short color, unsigned short len);
+void clearFPS(unsigned short x, unsigned short y, unsigned short color, unsigned short len);
 void dispTime(unsigned short x, unsigned short y);
 void dispFPS(unsigned short x, unsigned short y);
 void delay(int counts);
@@ -97,9 +97,12 @@ void drawString(unsigned short x, unsigned short y, unsigned short color, unsign
         _CP0_SET_COUNT(0); //for timing purposes
         drawChar(x,y,color, msg[i]); //current letter
         x+=6; //since each letter is 5 pixels wide
-        delay(100); //so FPS can keep up
+        delay(10000); //so FPS can keep up
 //        dispTime(xinit+2*strlen(msg)+5, y+15); //initially I had the time between letters displayed next to progress bar
+        clearFPS(xinit+6*strlen(msg)+3, y, MAGENTA, 25);
+//        delay(100000);
         dispFPS(xinit+6*strlen(msg)+3, y); //displays current fps in ns
+        
         drawProgress(xinit, y+15, i); //updates progress bar
         
         i+=1;
@@ -129,11 +132,11 @@ void drawProgress(unsigned short x, unsigned short y, unsigned char place){
     }
 }
 
-//clearProgress clears the green from the progress bar. Not actually used in this code.
-void clearProgress(unsigned short x, unsigned short y, unsigned short color, unsigned short len){
+//clearFPS clears the printed FPS so it can be rewritten
+void clearFPS(unsigned short x, unsigned short y, unsigned short color, unsigned short len){
     int i=0, j=0;
     for(i=0;i<len; i++){
-        for(j=0; j<5; j++){
+        for(j=0; j<=7; j++){
             LCD_drawPixel(x+i,y+j, color);
         }
     }
